@@ -21,6 +21,7 @@ import serp.bytecode.*;
 public class CubaEnhancer implements PCEnhancer.AuxiliaryEnhancer {
 
     public static final String ENHANCED_TYPE = "com.haulmont.cuba.core.sys.CubaEnhanced";
+    public static final String ENHANCED_DISABLED_TYPE = "com.haulmont.cuba.core.sys.CubaEnhancingDisabled";
 
     private static final String METAPROPERTY_ANNOTATION = "com.haulmont.chile.core.annotations.MetaProperty";
     private static final String TRANSIENT_ANNOTATION = "javax.persistence.Transient";

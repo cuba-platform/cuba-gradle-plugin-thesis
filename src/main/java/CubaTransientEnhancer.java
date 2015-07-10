@@ -59,8 +59,9 @@ public class CubaTransientEnhancer {
             for (BCClass cl : classes) {
                 Class[] interfaces = cl.getDeclaredInterfaceTypes();
                 for (Class anInterface : interfaces) {
-                    if (anInterface.getName().equals(CubaEnhancer.ENHANCED_TYPE)) {
-                        log.trace(String.format("Class %s is already enchanced", cl.getType()));
+                    if (anInterface.getName().equals(CubaEnhancer.ENHANCED_TYPE)
+                            || anInterface.getName().equals(CubaEnhancer.ENHANCED_DISABLED_TYPE)) {
+                        log.trace(String.format("Class %s is already enchanced or should not be enhanced at all", cl.getType()));
                         continue iteration;
                     }
                 }
