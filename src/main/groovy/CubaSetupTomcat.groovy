@@ -99,8 +99,8 @@ class CubaSetupTomcat extends DefaultTask {
                 logger.error('conf/server.xml has not been updated: cannot find Connector node')
                 return
             }
-            currPortValue = connectorNode.@port
-            newPortValue = project.tomcatPort
+            String currPortValue = connectorNode.@port
+            String newPortValue = project.tomcatPort
             if (!Objects.equals(currPortValue, newPortValue)) {
                 connectorNode.@port = newPortValue
                 changed = true;
