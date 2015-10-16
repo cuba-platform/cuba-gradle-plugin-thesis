@@ -390,7 +390,7 @@ Use is subject to license terms, see http://www.cuba-platform.com/license for de
             project.logger.info ">>> configuring Eclipse module $project.name"
 
             project.eclipse.classpath {
-                plusConfigurations += project.configurations.provided
+                plusConfigurations += [project.configurations.provided]
                 file.whenMerged { classpath ->
                     classpath.entries.removeAll { entry ->
                         entry.path.contains('build/enhanced-classes')
