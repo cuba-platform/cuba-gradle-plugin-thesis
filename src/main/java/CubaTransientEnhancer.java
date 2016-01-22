@@ -21,6 +21,8 @@ import java.util.List;
  */
 public class CubaTransientEnhancer {
 
+    private static final String METAPROPERTY_ANNOTATION = "com.haulmont.chile.core.annotations.MetaProperty";
+
     private static Log log = LogFactory.getLog(CubaTransientEnhancer.class);
 
     public static void main(String[] args) {
@@ -106,6 +108,11 @@ public class CubaTransientEnhancer {
             }
 
             String fieldName = StringUtils.uncapitalize(name.replaceFirst("set",""));
+            BCField declaredField = editingClass.getDeclaredField(fieldName);
+            if (!hasMetaPropertyAnnotation(method, declaredField)) {
+                continue;
+            }
+
             code.aload().setThis();
             table.addLocalVariable(StringUtils.lowerCase(name.replaceFirst("set","")+"_local"),method.getParamTypes()[0]).setStartPc(5);
             code.invokevirtual().setMethod("get" + StringUtils.capitalize(fieldName) , method.getParamTypes()[0], new Class[]{});
@@ -130,5 +137,18 @@ public class CubaTransientEnhancer {
             code.calculateMaxStack();
             code.calculateMaxLocals();
         }
+    }
+
+    private boolean hasMetaPropertyAnnotation(BCMethod method, BCField declaredField) {
+        Annotations methodAnnotations = method.getDeclaredRuntimeAnnotations(false);
+        if (methodAnnotations == null || methodAnnotations.getAnnotation(METAPROPERTY_ANNOTATION) == null) {
+            if (declaredField != null) {
+                Annotations fieldAnnotations = declaredField.getDeclaredRuntimeAnnotations(false);
+                if (fieldAnnotations == null || fieldAnnotations.getAnnotation(METAPROPERTY_ANNOTATION) == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
