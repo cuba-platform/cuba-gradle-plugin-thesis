@@ -15,7 +15,6 @@ import org.gradle.api.tasks.*
 
 /**
  * @author artamonov
- * @version $Id$
  */
 class CubaWidgetSetDebug extends DefaultTask {
 
@@ -26,7 +25,7 @@ class CubaWidgetSetDebug extends DefaultTask {
 
     String logLevel = 'INFO'
 
-    String xmx = '-Xmx7682m'
+    String xmx = '-Xmx768m'
     String xss = '-Xss8m'
     String xxMPS = '-XX:MaxPermSize=256m'
 
