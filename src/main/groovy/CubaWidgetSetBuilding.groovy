@@ -3,7 +3,6 @@
  * Use is subject to license terms, see http://www.cuba-platform.com/license for details.
  */
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
@@ -17,7 +16,7 @@ import org.gradle.api.tasks.*
  * @author artamonov
  * @version $Id$
  */
-class CubaWidgetSetBuilding extends DefaultTask {
+class CubaWidgetSetBuilding extends CommandLineWrapperExecutor {
 
     String widgetSetsDir
     String widgetSetClass
@@ -78,9 +77,11 @@ class CubaWidgetSetBuilding extends DefaultTask {
         List gwtCompilerArgs = collectCompilerArgs(gwtWidgetSetTemp.absolutePath)
         List gwtCompilerJvmArgs = collectCompilerJvmArgs()
 
+        writeTmpFile(compilerClassPath)
+
         project.javaexec {
-            main = 'com.google.gwt.dev.Compiler'
-            classpath = new SimpleFileCollection(compilerClassPath)
+            main = 'CommandLineWrapper'
+            classpath = new SimpleFileCollection(getWrapperClassPath())
             args = gwtCompilerArgs
             jvmArgs = gwtCompilerJvmArgs
         }
@@ -103,7 +104,8 @@ class CubaWidgetSetBuilding extends DefaultTask {
         "$project.buildDir/web/VAADIN/widgetsets"
     }
 
-    @InputFiles @SkipWhenEmpty
+    @InputFiles
+    @SkipWhenEmpty
     def FileCollection getSourceFiles() {
         project.logger.info("Analyze source projects for widgetset building in ${project.name}")
 
@@ -151,6 +153,10 @@ class CubaWidgetSetBuilding extends DefaultTask {
 
     protected List collectCompilerArgs(warPath) {
         List args = []
+
+        //args for commandLindWrapper
+        args.add(getClassPathTmpFile())
+        args.add('com.google.gwt.dev.Compiler')
 
         args.add('-war')
         args.add(warPath)
@@ -288,5 +294,10 @@ class CubaWidgetSetBuilding extends DefaultTask {
 
     protected boolean isVaadinClientClassPathEntry(File file) {
         return file.name.contains("vaadin-client") && !file.name.contains("vaadin-client-compiler")
+    }
+
+    @Override
+    protected String getClassPathTmpFile() {
+        "${tmpDir}/widget-set-classpath.dat"
     }
 }
