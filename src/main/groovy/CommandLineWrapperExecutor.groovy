@@ -1,10 +1,13 @@
+import org.apache.commons.io.IOUtils
 import org.gradle.api.DefaultTask
 
 /**
  @author grishin
- @version $Id$*  */
+ @version $Id$*
+ */
 abstract class CommandLineWrapperExecutor extends DefaultTask {
 
+    protected static List<File> classpathFiles
     protected String tmpDir = "$project.buildDir/tmp"
 
     protected abstract String getClassPathTmpFile()
@@ -12,7 +15,7 @@ abstract class CommandLineWrapperExecutor extends DefaultTask {
     protected def writeTmpFile(List<File> compilerClassPath) {
         final File classPathFile = new File(getClassPathTmpFile())
 
-        PrintWriter writer = null;
+        PrintWriter writer = null
         try {
             writer = new PrintWriter(classPathFile)
             for (File file : compilerClassPath) {
@@ -23,18 +26,18 @@ abstract class CommandLineWrapperExecutor extends DefaultTask {
             throw new RuntimeException("Failed to write classpath to temporary file", e)
         }
         finally {
-            if (writer != null) {
-                writer.close()
-            }
+            IOUtils.closeQuietly(writer)
         }
     }
 
-    protected List<File> getWrapperClassPath() {
+    protected static List<File> getWrapperClassPath() {
+        if (classpathFiles != null) return classpathFiles
+
         def classes = ((URLClassLoader) (CommandLineWrapper.class.getClassLoader())).getURLs()
-        List<File> classesList = []
+        classpathFiles = []
         for (URL url : classes) {
-            classesList.add(new File(url.path))
+            classpathFiles.add(new File(url.path))
         }
-        return classesList
+        return classpathFiles
     }
 }

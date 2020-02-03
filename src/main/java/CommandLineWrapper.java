@@ -1,14 +1,14 @@
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * @author grishin
@@ -39,33 +39,27 @@ public class CommandLineWrapper {
             System.setProperty("java.class.path", StringUtils.join(classPath, ";"));
 
             File tmpFile = new File(pathToClassPathFile);
-            tmpFile.delete();
+            FileUtils.deleteQuietly(tmpFile);
 
-            Method main = cls.getMethod("main", new Class[]{String[].class});
+            Method main = cls.getMethod("main", String[].class);
             main.invoke(null, new Object[]{getParams(args)});
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static Object[] getParams(String[] args) {
+    private static String[] getParams(String[] args) {
         if (args != null) {
-            return ArrayUtils.subarray(args, 2, args.length);
+            return (String[]) ArrayUtils.subarray(args, 2, args.length);
         }
-        return new Object[0];
+        return new String[0];
     }
 
+    @SuppressWarnings("unchecked")
     private static List<String> readFile(String fileName) {
         try {
-            List<String> list = new ArrayList<>();
-            File file = new File(fileName);
-            Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                list.add(scanner.nextLine());
-            }
-            scanner.close();
-            return list;
-        } catch (FileNotFoundException e) {
+            return FileUtils.readLines(new File(fileName));
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
