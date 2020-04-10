@@ -3,7 +3,7 @@
  * Use is subject to license terms, see http://www.cuba-platform.com/license for details.
  */
 
-import org.gradle.api.DefaultTask
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -11,10 +11,9 @@ import org.gradle.api.tasks.TaskAction
 /**
  * Enhances entity classes specified in persistence xml
  *
- * @author krivopustov
- * @version $Id$
+ * @author krivopustov* @version $Id$
  */
-class CubaEnhancing extends DefaultTask {
+class CubaEnhancing extends CommandLineWrapperExecutor {
 
     String persistenceXml
 
@@ -81,16 +80,27 @@ class CubaEnhancing extends DefaultTask {
                 File tmpFile = new File(tmpDir, 'persistence.xml')
                 new XmlNodePrinter(new PrintWriter(new FileWriter(tmpFile))).print(persistence)
 
+                writeClasspathEntriesToFile()
                 project.javaexec {
-                    main = 'org.apache.openjpa.enhance.PCEnhancer'
-                    classpath(
-                            project.sourceSets.main.compileClasspath,
-                            project.sourceSets.main.output.classesDir,
-                            project.configurations.enhance
-                    )
-                    args('-properties', tmpFile, '-d', "$project.buildDir/enhanced-classes/main")
+                    main = 'CommandLineWrapper'
+                    classpath = new SimpleFileCollection(getWrapperClassPath())
+                    args(getClassPathTmpFile(), 'org.apache.openjpa.enhance.PCEnhancer',
+                            '-properties', tmpFile, '-d', "$project.buildDir/enhanced-classes/main")
                 }
             }
         }
+    }
+
+    protected void writeClasspathEntriesToFile() {
+        def classPathEntries = []
+        classPathEntries += project.sourceSets.main.compileClasspath.files
+        classPathEntries += project.sourceSets.main.output.classesDir
+        classPathEntries += project.configurations.enhance.files
+        writeTmpFile(classPathEntries)
+    }
+
+    @Override
+    protected String getClassPathTmpFile() {
+        "${tmpDir}/enhancing-classpath.dat"
     }
 }
