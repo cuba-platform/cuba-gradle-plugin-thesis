@@ -25,7 +25,7 @@ import java.util.regex.Pattern
  * @author artamonov
  * @version $Id$
  */
-class CubaWebScssThemeCreation extends DefaultTask {
+class CubaWebScssThemeCreation extends CommandLineWrapperExecutor {
 
     // additional scss root from modules
     def includes = []
@@ -260,12 +260,13 @@ class CubaWebScssThemeCreation extends DefaultTask {
             scssConfiguration.resolvedConfiguration.resolvedArtifacts.each {
                 scssArtifacts.add(it.file)
             }
-            def scssClassPath = new SimpleFileCollection(scssArtifacts)
+
+            writeTmpFile(scssArtifacts)
 
             project.javaexec {
-                main = 'com.vaadin.sass.SassCompiler'
-                classpath = scssClassPath
-                args = [scssFilePath, cssFilePath]
+                main = 'CommandLineWrapper'
+                classpath = new SimpleFileCollection(getWrapperClassPath())
+                args = [getClassPathTmpFile(), 'com.vaadin.sass.SassCompiler', scssFilePath, cssFilePath]
                 jvmArgs = []
             }
 
@@ -410,5 +411,10 @@ class CubaWebScssThemeCreation extends DefaultTask {
             }
             return urls
         }
+    }
+
+    @Override
+    protected String getClassPathTmpFile() {
+        "${tmpDir}/css-builder-classpath.dat"
     }
 }

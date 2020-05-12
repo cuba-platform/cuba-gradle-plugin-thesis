@@ -3,7 +3,7 @@
  * Use is subject to license terms, see http://www.cuba-platform.com/license for details.
  */
 
-import org.gradle.api.DefaultTask
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -13,10 +13,9 @@ import java.util.regex.Pattern
 /**
  * Enhances specified transient entity classes
  *
- * @author krivopustov
- * @version $Id$
+ * @author krivopustov* @version $Id$
  */
-class CubaEnhanceTransient extends DefaultTask {
+class CubaEnhanceTransient extends CommandLineWrapperExecutor {
 
     String metadataXml
     String packageRegExp
@@ -55,13 +54,13 @@ class CubaEnhanceTransient extends DefaultTask {
     def enhanceClasses() {
         def classes = getClassNames(metadataXml)
         project.logger.info(">>> enhancing classes: $classes")
+
+        writeClasspathEntriesToFile()
+
         project.javaexec {
-            main = 'CubaTransientEnhancer'
-            classpath(
-                    project.sourceSets.main.compileClasspath,
-                    project.sourceSets.main.output.classesDir,
-                    project.configurations.enhance
-            )
+            main = 'CommandLineWrapper'
+            classpath = new SimpleFileCollection(getWrapperClassPath())
+            args(getClassPathTmpFile(), "CubaTransientEnhancer")
             args(classes + "-o $project.buildDir/enhanced-classes/main")
         }
     }
@@ -83,5 +82,18 @@ class CubaEnhanceTransient extends DefaultTask {
             logger.error("File $metadataXml doesn't exist")
             throw new IllegalArgumentException("File $metadataXml doesn't exist")
         }
+    }
+
+    protected void writeClasspathEntriesToFile() {
+        def classPathEntries = []
+        classPathEntries += project.sourceSets.main.compileClasspath.files
+        classPathEntries += project.sourceSets.main.output.classesDir
+        classPathEntries += project.configurations.enhance.files
+        writeTmpFile(classPathEntries)
+    }
+
+    @Override
+    protected String getClassPathTmpFile() {
+        "${tmpDir}/trancient-enhancing-classpath.dat"
     }
 }

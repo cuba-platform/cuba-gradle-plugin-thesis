@@ -7,12 +7,11 @@ import org.gradle.api.DefaultTask
  */
 abstract class CommandLineWrapperExecutor extends DefaultTask {
 
-    protected static List<File> classpathFiles
     protected String tmpDir = "$project.buildDir/tmp"
 
     protected abstract String getClassPathTmpFile()
 
-    protected def writeTmpFile(List<File> compilerClassPath) {
+    protected def writeTmpFile(Collection<File> compilerClassPath) {
         final File classPathFile = new File(getClassPathTmpFile())
 
         PrintWriter writer = null
@@ -31,7 +30,8 @@ abstract class CommandLineWrapperExecutor extends DefaultTask {
     }
 
     protected static List<File> getWrapperClassPath() {
-        if (classpathFiles != null) return classpathFiles
+        List<File> classpathFiles = []
+        if (classpathFiles) return classpathFiles
 
         def classes = ((URLClassLoader) (CommandLineWrapper.class.getClassLoader())).getURLs()
         classpathFiles = []

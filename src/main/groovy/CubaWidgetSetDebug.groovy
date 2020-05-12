@@ -16,7 +16,7 @@ import org.gradle.api.tasks.*
 /**
  * @author artamonov
  */
-class CubaWidgetSetDebug extends DefaultTask {
+class CubaWidgetSetDebug extends CommandLineWrapperExecutor {
 
     String widgetSetsDir
     String widgetSetClass
@@ -60,9 +60,10 @@ class CubaWidgetSetDebug extends DefaultTask {
         List gwtCompilerArgs = collectCompilerArgs()
         List gwtCompilerJvmArgs = collectCompilerJvmArgs()
 
+        writeTmpFile(compilerClassPath)
         project.javaexec {
-            main = 'com.google.gwt.dev.codeserver.CodeServer'
-            classpath = new SimpleFileCollection(compilerClassPath)
+            main = 'CommandLineWrapper'
+            classpath = new SimpleFileCollection(getWrapperClassPath())
             args = gwtCompilerArgs
             jvmArgs = gwtCompilerJvmArgs
         }
@@ -129,6 +130,10 @@ class CubaWidgetSetDebug extends DefaultTask {
 
     protected List collectCompilerArgs() {
         List args = []
+
+        //args for commandLindWrapper
+        args.add(getClassPathTmpFile())
+        args.add('com.google.gwt.dev.codeserver.CodeServer')
 
         args.addAll(['-logLevel', logLevel])
         args.addAll(['-workDir', project.file(widgetSetsDir).absolutePath])
@@ -260,5 +265,10 @@ class CubaWidgetSetDebug extends DefaultTask {
         }
 
         return compilerClassPath
+    }
+
+    @Override
+    protected String getClassPathTmpFile() {
+        "${tmpDir}/widget-set-debug-classpath.dat"
     }
 }
