@@ -13,6 +13,9 @@ abstract class CommandLineWrapperExecutor extends DefaultTask {
 
     protected def writeTmpFile(Collection<File> compilerClassPath) {
         final File classPathFile = new File(getClassPathTmpFile())
+        File parent = classPathFile.getParentFile()
+        if(parent != null)
+            parent.mkdirs();
 
         PrintWriter writer = null
         try {
